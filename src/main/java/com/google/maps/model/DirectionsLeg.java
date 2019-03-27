@@ -16,7 +16,7 @@
 package com.google.maps.model;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
+import org.threeten.bp.ZonedDateTime;
 
 /**
  * A component of a Directions API result.

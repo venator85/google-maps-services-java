@@ -15,8 +15,9 @@
 
 package com.google.maps.model;
 
+import org.threeten.bp.ZonedDateTime;
+
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 
 /**
  * Transit directions return additional information that is not relevant for other modes of

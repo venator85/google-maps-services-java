@@ -25,7 +25,7 @@ import com.google.maps.model.TransitMode;
 import com.google.maps.model.TransitRoutingPreference;
 import com.google.maps.model.TravelMode;
 import com.google.maps.model.Unit;
-import java.time.Instant;
+import org.threeten.bp.Instant;
 
 /** Request for the Directions API. */
 public class DirectionsApiRequest
