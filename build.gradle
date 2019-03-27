@@ -16,7 +16,7 @@ plugins {
 
 apply plugin: 'java'
 apply plugin: 'java-library'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
@@ -29,28 +29,22 @@ repositories {
     mavenCentral()
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from 'build/docs/javadoc'
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier = 'javadoc'
 }
 
 task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-}
-
-artifacts {
-    archives jar
-    archives javadocJar
-    archives sourcesJar
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
 }
 
 dependencies {
     compileOnly 'com.google.appengine:appengine-api-1.0-sdk:1.9.71'
     api 'com.squareup.okhttp3:okhttp:3.12.2'
     api 'com.google.code.gson:gson:2.8.5'
+    api 'org.threeten:threetenbp:1.3.8'
     implementation 'org.slf4j:slf4j-api:1.7.25'
-	implementation 'org.threeten:threetenbp:1.3.8'
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:2.25.1'
     testImplementation 'com.squareup.okhttp3:mockwebserver:3.14.0'
@@ -84,9 +78,8 @@ tasks.withType(Test) {
 
 javadoc {
     exclude '**/internal/**'
-    def currentJavaVersion = org.gradle.api.JavaVersion.current()
-    if (currentJavaVersion.compareTo(org.gradle.api.JavaVersion.VERSION_1_9) > 0) {
-      options.addBooleanOption('html4', true)
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
     }
 }
 
@@ -101,61 +94,57 @@ jacocoTestReport {
     }
 }
 
-uploadArchives {
+publishing {
     repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+        maven {
+            url = "$buildDir/repo"
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            artifactId 'google-maps-services-android'
+            from components.java
 
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
-            }
+            artifact sourcesJar
+            artifact javadocJar
 
-            pom.artifactId = 'google-maps-services-android'
-            pom.project {
-                name 'Java Client for Google Maps Services'
-                packaging 'jar'
-                description 'Use the Google Maps API Web Services in Java! ' +
+            pom {
+                name = 'Java Client for Google Maps Services'
+                description = 'Use the Google Maps API Web Services in Java! ' +
                     'https://developers.google.com/maps/documentation/webservices/'
-                url 'https://github.com/googlemaps/google-maps-services-java'
+                url = 'https://github.com/googlemaps/google-maps-services-java'
 
                 scm {
-                    url 'scm:git@github.com:googlemaps/google-maps-services-java.git'
-                    connection 'scm:git@github.com:googlemaps/google-maps-services-java.git'
-                    developerConnection 'scm:git@github.com:googlemaps/google-maps-services-java.git'
+                    url = 'scm:git@github.com:googlemaps/google-maps-services-java.git'
+                    connection = 'scm:git@github.com:googlemaps/google-maps-services-java.git'
+                    developerConnection = 'scm:git@github.com:googlemaps/google-maps-services-java.git'
                 }
 
                 licenses {
                     license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
 
                 developers {
                     developer {
-                        id 'markmcd'
-                        name 'Mark McDonald'
-                        url 'https://google.com/+MarkMcDonald0'
+                        id = 'markmcd'
+                        name = 'Mark McDonald'
+                        url = 'https://google.com/+MarkMcDonald0'
                     }
                     developer {
-                        id 'domesticmouse'
-                        name 'Brett Morgan'
-                        url 'https://google.com/+BrettMorgan'
+                        id = 'domesticmouse'
+                        name = 'Brett Morgan'
+                        url = 'https://google.com/+BrettMorgan'
                     }
                     developer {
-                        id 'broady'
-                        name 'Chris Broadfoot'
-                        url 'https://google.com/+ChristopherBroadfoot'
+                        id = 'broady'
+                        name = 'Chris Broadfoot'
+                        url = 'https://google.com/+ChristopherBroadfoot'
                     }
                 }
             }
         }
-    }
-}
-
-if (ext.'signing.secretKeyRingFile') {
-    signing {
-        sign configurations.archives
     }
 }
